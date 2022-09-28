@@ -119,7 +119,7 @@ namespace LinqApp
                      select new { od.OrderId, maximumDiscount };
                 foreach (var od in maximumNumberOfdiscountGivenToAnOrderId)
                 {
-                    Console.WriteLine($"Employee Name:{od.OrderId} {string.Format("{0:c}" ,od.maximumDiscount.ToString("c", new CultureInfo("en-US")))}");
+                    Console.WriteLine($"OrderId:{od.OrderId} Maximum amount of discount given to a orderId {string.Format("{0:c}" ,od.maximumDiscount.ToString("c", new CultureInfo("en-US")))}");
                 }
                 //Employee Name and Reports to
                 var ListOfEmployees = from emp in context.Employees
@@ -130,6 +130,15 @@ namespace LinqApp
                 foreach (var emp in ListOfEmployees)
                 {
                     Console.WriteLine($"Employee Name: {emp.ReportingEmployeeFirstName} {emp.ReportingEmployeeLastName} , ReportsTo: {emp.REmployeeFirstName} {emp.REmployeeLastName}");
+                }
+
+                #endregion
+                #region Method Syntax
+                //Employee who lives in London
+                var EmployeeLivesInLondon = context.Employees.Where(e=> e.City=="London").Select(e => new { e.TitleOfCourtesy, e.FirstName, e.LastName, e.City });
+                foreach (var emp in EmployeeLivesInLondon)
+                {
+                    Console.WriteLine($"Employee Name: {emp.TitleOfCourtesy} {emp.FirstName} {emp.LastName}, City: {emp.City}");
                 }
                 #endregion
 
