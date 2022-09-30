@@ -109,7 +109,7 @@ namespace LinqApp
                                      where (o.ShipCountry == "USA" || o.ShipCountry == "UK") && o.Freight > 100
                                      select o.OrderId;
                 
-                    Console.WriteLine($" No of Orders> 100 from USA or UK: {numberOfOrder.Count()} ");
+                 Console.WriteLine($" No of Orders> 100 from USA or UK: {numberOfOrder.Count()} ");
                 //Maximum amount of discount given to a orderId
                 var maximumNumberOfdiscountGivenToAnOrderId =
                      from od in context.OrderDetails
@@ -119,7 +119,7 @@ namespace LinqApp
                      select new { od.OrderId, maximumDiscount };
                 foreach (var od in maximumNumberOfdiscountGivenToAnOrderId)
                 {
-                    Console.WriteLine($"OrderId:{od.OrderId} Maximum amount of discount given to a orderId {string.Format("{0:c}" ,od.maximumDiscount.ToString("c", new CultureInfo("en-US")))}");
+                    Console.WriteLine($"OrderId:{od.OrderId} Maximum amount of discount given to a orderId: {string.Format("{0:c}" ,od.maximumDiscount.ToString("c", new CultureInfo("en-US")))}");
                 }
                 //Employee Name and Reports to
                 var ListOfEmployees = from emp in context.Employees
@@ -134,11 +134,58 @@ namespace LinqApp
 
                 #endregion
                 #region Method Syntax
+                //Customers who live in Paris or London
+                var CustomerFromParisOrLondon = context.Customers.Where(c => c.City == "London" || c.City == "Paris").Select(c => new { c.CustomerId, c.CompanyName, c.Address, c.City, c.PostalCode, c.Country });
+                foreach (var c in CustomerFromParisOrLondon)
+                {
+                    Console.WriteLine(c);
+                }
                 //Employee who lives in London
-                var EmployeeLivesInLondon = context.Employees.Where(e=> e.City=="London").Select(e => new { e.TitleOfCourtesy, e.FirstName, e.LastName, e.City });
+                var EmployeeLivesInLondon = context.Employees.Where(e => e.City == "London").Select(e => new { e.TitleOfCourtesy, e.FirstName, e.LastName, e.City });
                 foreach (var emp in EmployeeLivesInLondon)
                 {
                     Console.WriteLine($"Employee Name: {emp.TitleOfCourtesy} {emp.FirstName} {emp.LastName}, City: {emp.City}");
+                }
+                //Products that stored in bottles
+                var productsInBottles = context.Products.Where(p => p.QuantityPerUnit.Contains("bottles")).Select(p => new { p.ProductName, p.QuantityPerUnit });
+                foreach (var p in productsInBottles)
+                {
+                    Console.WriteLine($"ProductName: {p.ProductName} QuantityPerUnit: {p.QuantityPerUnit}");
+                }
+                //Product details with their supplier details
+                var productsAndSupplierDetails = context.Products.Join(context.Suppliers, p=>p.SupplierId, s=> s.SupplierId,(p,s)=> new {p.ProductName, p.QuantityPerUnit,s.CompanyName, s.Country}).Where(pro=> pro.QuantityPerUnit.Contains("bottles")).Select (p=>new { p.ProductName, p.QuantityPerUnit, p.CompanyName, p.Country });
+
+                foreach (var p in productsAndSupplierDetails)
+                {
+                    Console.WriteLine($"Product Name: {p.ProductName} Quantity per unit: {p.QuantityPerUnit} Company name: {p.CompanyName} Country: {p.Country}");
+                }
+                //Number of products in each category
+                var numOfProductsInEachCategory = context.Products.Join(context.Categories, p => p.CategoryId, cat => cat.CategoryId, (pro, cat) => new { pro.CategoryId, cat.Products}).GroupBy(pro => new { pro.CategoryId, p=pro.Products.Count() }).Select(pro=> new { pro.Key});
+
+                foreach (var pro in numOfProductsInEachCategory)
+                {
+                    
+                        Console.WriteLine($"Category: {context.Categories.Find(pro.Key.CategoryId).CategoryName} , No Of Products: {pro.Key.p} ");
+                    
+                }
+                //Number of orders more than 100 and shiped country USA ok UK
+                var orderDetails = context.Orders.Where(o => (o.ShipCountry == "USA" || o.ShipCountry == "UK") && o.Freight > 100).Select(o => new { o.OrderId }).Count();
+
+                Console.WriteLine($"Number of Orders: {orderDetails}");
+
+                //Maximum amount of discount given to a orderId
+                var maxDiscount = context.OrderDetails.Max(o => o.UnitPrice * o.Quantity * Convert.ToDecimal(o.Discount));
+                var maxDiscountOfAnOrderId = context.OrderDetails.Where(o => o.UnitPrice * o.Quantity * Convert.ToDecimal(o.Discount) == maxDiscount).Select(or => new { or.OrderId, maxDiscount});
+                foreach (var od in maxDiscountOfAnOrderId)
+                {
+                    Console.WriteLine($"OrderId:{od.OrderId} Maximum amount of discount given to a orderId: {string.Format("{0:c}", od.maxDiscount.ToString("C", new CultureInfo("en-US")))}");
+                }
+
+                //Employee Name and Reports to
+                var employeeDetails = context.Employees.Join(context.Employees, e1 => e1.ReportsTo, e2 => e2.EmployeeId, (em1, em2) => new { em1.TitleOfCourtesy, em1.FirstName, em1.LastName, reEmployeeFName=em2.FirstName, reEmployeeLName=em2.LastName }).Select(emp => new { emp.TitleOfCourtesy, emp.FirstName, emp.LastName, emp.reEmployeeFName, emp.reEmployeeLName });
+                foreach (var emp in employeeDetails)
+                {
+                    Console.WriteLine($"Employee Name:  {emp.TitleOfCourtesy} {emp.FirstName} {emp.LastName} , ReportsTo: {emp.reEmployeeFName} {emp.reEmployeeLName}");
                 }
                 #endregion
 
